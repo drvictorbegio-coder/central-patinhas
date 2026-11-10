@@ -99,6 +99,10 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
     await deve('Biscoito');
     await deve('Retorno clínico');
     await foto('w7_ficha');
+    // Botão da tela Tutores e Pacientes leva ao cadastro novo com o tutor já escolhido
+    await page.goto(BASE + '/#/pacientes?q=Carla'); await deve('Carla Mendes');
+    await clicar('+ Atendimento / outro animal');
+    await deve('Qual é o paciente?'); await deve('Pipoca');
     console.log('OK — cadastro em uma tela funcionando');
   } catch (e) {
     await foto('w_ERRO').catch(() => {});

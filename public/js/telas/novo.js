@@ -8,7 +8,7 @@ import { diasRetorno } from '../formExames.js';
 const PASSOS = ['Tutor', 'Paciente', 'Atendimento', 'Conferir'];
 const ESPECIES = ['Canina', 'Felina', 'Ave', 'Roedor', 'Lagomorfo (coelho)', 'Réptil', 'Outra'];
 
-export async function render(el) {
+export async function render(el, rota) {
   const [tipos, labs, prazos, dias] = await Promise.all([cache.tipos(), cache.laboratorios(), cache.prazos(), diasRetorno()]);
   const tiposAtivos = tipos.filter((t) => t.ativo);
   const labsAtivos = labs.filter((l) => l.ativo);
@@ -107,6 +107,7 @@ export async function render(el) {
       h('div', { style: { marginTop: '14px' } }, h('button', { class: 'btn', onclick: () => abrirNovo(busca.value.trim()) }, '+ Tutor novo')),
       formNovo));
     if (st.tutorNovo) abrirNovo();
+    else if (st.buscaInicial) { busca.value = st.buscaInicial; st.buscaInicial = ''; buscar(); }
     busca.focus();
   }
 
@@ -316,12 +317,19 @@ export async function render(el) {
         ? `${r.exames.length} exame(s) de ${animal.nome} cadastrado(s). A previsão de cada resultado já está no painel.`
         : `Atendimento de ${animal.nome} registrado, com retorno previsto para ${fmtData(st.dataRetorno)}.`),
       h('div', { class: 'acoes-linha', style: { justifyContent: 'center', marginTop: '16px' } },
-        h('a', { class: 'btn primario', href: '#/novo', onclick: (e) => { e.preventDefault(); render(el); } }, '+ Novo atendimento'),
+        h('a', { class: 'btn primario', href: '#/novo', onclick: (e) => { e.preventDefault(); render(el, { params: new URLSearchParams() }); } }, '+ Novo atendimento'),
         h('a', { class: 'btn', href: `#/paciente/${r.animal_id}` }, 'Abrir ficha do paciente'),
         h('a', { class: 'btn', href: '#/painel' }, 'Ir para a Central'))));
     toast('Cadastro salvo.');
   }
 
+  // Vindo de "Tutores e Pacientes": já começa com o tutor escolhido ou com a pesquisa preenchida
+  const tutorId = rota && rota.params && rota.params.get('tutor');
+  st.buscaInicial = (rota && rota.params && rota.params.get('q')) || '';
+  if (tutorId) {
+    const { data: tu } = await sb.from('tutores').select('id, id_externo, nome, telefone, animais(id, id_externo, nome, especie, internado)').eq('id', tutorId).maybeSingle();
+    if (tu) { st.tutor = tu; st.passo = 1; }
+  }
   desenhar();
   return {};
 }

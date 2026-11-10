@@ -14,12 +14,12 @@ export async function render(el, rota) {
     const tutores = await rpc('buscar_cadastros', { q });
     limpar(res, tutores.length ? tutores.map((tu) => cartaoTutor(tu, buscar)) : h('div', { class: 'vazio' },
       h('p', null, `Nenhum cadastro encontrado para "${q}".`),
-      h('button', { class: 'btn primario', onclick: () => formTutor(null, buscar, q) }, '+ Cadastrar novo tutor')));
+      h('a', { class: 'btn primario', href: `#/novo?q=${encodeURIComponent(q)}` }, '+ Novo atendimento (cadastrar tutor)')));
   };
   entrada.addEventListener('input', () => { clearTimeout(t); t = setTimeout(buscar, 250); });
   limpar(el,
     h('div', { class: 'cabecalho' }, h('h1', null, 'Tutores e Pacientes'),
-      h('div', { class: 'acoes' }, h('button', { class: 'btn primario', onclick: () => formTutor(null, buscar) }, '+ Novo tutor'))),
+      h('div', { class: 'acoes' }, h('a', { class: 'btn primario', href: '#/novo' }, '+ Novo atendimento'))),
     h('div', { class: 'cartao', style: { marginBottom: '16px' } }, h('div', { class: 'corpo' }, h('div', { class: 'busca-grande' }, h('span', { html: ICONES.busca }), entrada))),
     res);
   await buscar();
@@ -32,7 +32,7 @@ function cartaoTutor(tu, aoMudar) {
       h('div', null, h('b', null, tu.nome), h('span', { class: 'fraco' }, `  ·  ID ${tu.id_externo}  ·  `), telefone(tu.telefone)),
       h('div', { style: { marginLeft: 'auto' }, class: 'acoes-linha' },
         h('button', { class: 'btn peq', onclick: () => formTutor(tu, aoMudar) }, 'Editar tutor'),
-        h('button', { class: 'btn peq primario', onclick: () => formAnimal(null, tu, aoMudar) }, '+ Animal'))),
+        h('a', { class: 'btn peq primario', href: `#/novo?tutor=${tu.id}` }, '+ Atendimento / outro animal'))),
     tu.observacoes ? h('div', { class: 'fraco' }, tu.observacoes) : null,
     h('div', { class: 'animais' }, tu.animais.length ? tu.animais.map((a) => h('a', { class: 'chip-animal', href: `#/paciente/${a.id}` },
       `🐾 ${a.nome}`, h('span', { class: 'fraco' }, `${a.especie} · ID ${a.id_externo}`), a.internado ? seloInternado() : null))
