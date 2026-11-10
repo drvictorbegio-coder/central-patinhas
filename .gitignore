@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/
+test/e2e/capturas/
+*.log
+backup*.sql
+backup*.dump

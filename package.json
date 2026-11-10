@@ -1,0 +1,20 @@
+{
+  "name": "patinhas-central-recepcao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Patinhas de Assis | Central da Recepção — Supabase + Vercel",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/banco.test.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "pg": "^8.12.0",
+    "puppeteer-core": "^23.11.1"
+  }
+}

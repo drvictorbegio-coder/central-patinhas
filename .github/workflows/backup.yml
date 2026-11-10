@@ -1,0 +1,29 @@
+# Backup automático diário do banco (Supabase) guardado no GitHub por 90 dias.
+# Requer o segredo SUPABASE_DB_URL no repositório (Settings → Secrets and variables → Actions).
+# Mantenha este repositório PRIVADO: o backup contém dados pessoais de tutores (LGPD).
+name: Backup diario do banco
+on:
+  schedule:
+    - cron: '17 6 * * *'   # 03:17 em São Paulo
+  workflow_dispatch: {}
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gerar backup
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then echo "Defina o segredo SUPABASE_DB_URL."; exit 1; fi
+          DATA=$(TZ=America/Sao_Paulo date +%Y-%m-%d_%H%M)
+          mkdir backup
+          docker run --rm -e DB_URL postgres:17 sh -c 'pg_dump "$DB_URL" --schema=public --no-owner' > backup/patinhas_public_$DATA.sql
+          docker run --rm -e DB_URL postgres:17 sh -c 'pg_dump "$DB_URL" --table=auth.users --data-only --no-owner' > backup/patinhas_usuarios_$DATA.sql
+          ls -la backup
+          test -s backup/patinhas_public_$DATA.sql
+      - name: Guardar backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-patinhas-${{ github.run_number }}
+          path: backup/
+          retention-days: 90
