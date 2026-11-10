@@ -4,6 +4,7 @@ import { h, limpar, toast, modal, ICONES } from './ui.js';
 
 const TELAS = {
   painel:      { titulo: 'Central da Recepção', icone: '🏠', modulo: './telas/painel.js' },
+  novo:        { titulo: 'Novo atendimento', icone: '➕', modulo: './telas/novo.js' },
   exames:      { titulo: 'Exames', icone: '🧪', modulo: './telas/exames.js' },
   retornos:    { titulo: 'Retornos', icone: '📅', modulo: './telas/retornos.js' },
   pacientes:   { titulo: 'Tutores e Pacientes', icone: '🐾', modulo: './telas/pacientes.js' },

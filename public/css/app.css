@@ -264,3 +264,28 @@ table.tabela { width: 100%; border-collapse: collapse; font-size: .89rem; }
   .lateral, .topo, .acoes, .acoes-linha, .filtros, .abas { display: none !important; }
   .layout { display: block; }
 }
+
+/* ---------- Novo atendimento (passos) */
+.passos { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.passo { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 99px; background: var(--superficie); border: 1px solid var(--borda); color: var(--texto-fraco); font-weight: 600; font-size: .9rem; }
+.passo .bola { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--cinza-bg); font-size: .8rem; }
+.passo.atual { border-color: var(--marca); color: var(--marca); background: var(--marca-clara); }
+.passo.atual .bola { background: var(--marca); color: #fff; }
+.passo.feito { color: var(--verde); }
+.passo.feito .bola { background: var(--verde); color: #fff; }
+.rodape-passo { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--borda); }
+.secao-novo { margin-top: 16px; padding: 16px; border: 1px dashed var(--marca); border-radius: var(--raio); background: #fbfdfc; }
+.secao-novo h3 { margin-bottom: 12px; }
+.item-escolha { all: unset; box-sizing: border-box; display: block; width: 100%; padding: 11px 14px; border: 1px solid var(--borda); border-radius: 8px; margin-bottom: 6px; cursor: pointer; background: #fff; }
+.item-escolha:hover, .item-escolha:focus-visible { border-color: var(--marca); background: var(--marca-clara); }
+.opcoes-radio.grande label { padding: 14px 22px; font-size: 1.02rem; font-weight: 600; }
+.resumo { border: 1px solid var(--borda); border-radius: var(--raio); }
+.linha-resumo { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--borda); align-items: center; }
+.linha-resumo:last-child { border-bottom: 0; }
+.grande-btn { padding: 12px 22px; font-size: 1rem; }
+.animais { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .passo .nome { display: none; }
+  .passo.atual .nome { display: inline; }
+  .linha-resumo { grid-template-columns: 1fr; gap: 2px; }
+}

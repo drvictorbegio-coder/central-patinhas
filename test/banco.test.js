@@ -556,3 +556,30 @@ test('Relatório gerencial usa os dados reais do banco', async () => {
   assert.ok(rel.retornos.previstos >= 1);
   assert.ok(rel.retornos.dispensados >= 1);
 });
+
+// ---------------------------------------------------------------- cadastro em uma tela
+test('Novo atendimento em uma tela: tutor+animal novos com exames, e sem exame com retorno', async () => {
+  const comExame = (await um(U.nathaly, 'SELECT registrar_atendimento_completo($1) AS r', [{
+    tutor: { id_externo: 'W100', nome: 'Wizard Tutora', telefone: '(11) 95555-0000' },
+    animal: { id_externo: 'WA100', nome: 'Luna', especie: 'Felina' },
+    data: '2026-11-06', com_exame: true,
+    itens: [{ tipo_exame_id: T.hemo, laboratorio_id: L.A }, { tipo_exame_id: T.us, laboratorio_id: L.V }],
+  }])).r;
+  assert.equal(comExame.exames.length, 2);
+  assert.equal((await retornosDe(comExame.animal_id)).length, 0, 'com exame: sem retorno clínico automático (vem o de avaliação)');
+  // Mesmo tutor, outro animal, sem exame → retorno obrigatório
+  await assert.rejects(como(U.nathaly, 'SELECT registrar_atendimento_completo($1)', [{ tutor: { id: comExame.tutor_id }, animal: { id_externo: 'WA101', nome: 'Sol', especie: 'Canina' }, data: '2026-11-06', com_exame: false }]), /data prevista do retorno/);
+  const sem = (await um(U.nathaly, 'SELECT registrar_atendimento_completo($1) AS r', [{
+    tutor: { id: comExame.tutor_id }, animal: { id_externo: 'WA101', nome: 'Sol', especie: 'Canina' },
+    data: '2026-11-06', com_exame: false, data_retorno: '2026-11-20' }])).r;
+  const rets = await retornosDe(sem.animal_id);
+  assert.equal(rets.length, 1);
+  assert.equal(rets[0].data_prevista, '2026-11-20');
+  // Falha no meio (exame sem prazo) não deixa tutor/animal gravados pela metade
+  await assert.rejects(como(U.nathaly, 'SELECT registrar_atendimento_completo($1)', [{
+    tutor: { id_externo: 'W200', nome: 'Meio Gravado' }, animal: { id_externo: 'WA200', nome: 'Nada', especie: 'Canina' },
+    data: '2026-11-06', com_exame: true, itens: [{ tipo_exame_id: T.histo, laboratorio_id: L.V }] }]), /Não há prazo configurado/);
+  assert.equal((await sistema("SELECT count(*)::int n FROM tutores WHERE id_externo = 'W200'"))[0].n, 0);
+  // Animal de outro tutor é recusado
+  await assert.rejects(como(U.nathaly, 'SELECT registrar_atendimento_completo($1)', [{ tutor: { id: comExame.tutor_id }, animal: { id: 1 }, com_exame: false, data_retorno: '2026-11-30', data: '2026-11-06' }]), /não pertence a este tutor/);
+});
