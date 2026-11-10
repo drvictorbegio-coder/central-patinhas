@@ -53,7 +53,10 @@ Deno.serve(async (req) => {
     if (b.acao === "setup") {
       if (count && count > 0) return json(403, { erro: "O sistema já foi configurado." });
       const { data: cfg } = await sb.from("setup_inicial").select("codigo_hash").eq("id", 1).maybeSingle();
-      if (!cfg || cfg.codigo_hash !== await sha256(String(b.setup_token || "").trim())) return json(403, { erro: "Código de configuração inválido." });
+      const digitado = String(b.setup_token || "").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+      const confere = !!cfg && cfg.codigo_hash === await sha256(digitado);
+      console.log(JSON.stringify({ setup: true, registro_encontrado: !!cfg, tamanho_digitado: digitado.length, confere }));
+      if (!confere) return json(403, { erro: "Código de configuração inválido." });
       const nome = String(b.nome_completo || "").trim();
       const login = String(b.login || "").trim().toLowerCase();
       if (nome.length < 2) return json(400, { erro: "Informe o nome completo." });
