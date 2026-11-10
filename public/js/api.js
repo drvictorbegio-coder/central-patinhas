@@ -87,17 +87,20 @@ export async function sair() {
 }
 
 // Chamada às funções da Vercel que exigem administrador (Gestão de Usuários)
-export async function apiAdmin(corpo) {
+// Funções do servidor (Supabase Edge Function "usuarios"): configuração inicial e Gestão de Usuários
+export async function funcaoUsuarios(corpo, metodo = 'POST') {
   const { data } = await sb.auth.getSession();
-  const r = await fetch('/api/usuarios', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session ? data.session.access_token : ''}` },
-    body: JSON.stringify(corpo),
+  const token = data.session ? data.session.access_token : config.supabaseAnonKey;
+  const r = await fetch(`${config.supabaseUrl}/functions/v1/usuarios`, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json', apikey: config.supabaseAnonKey, Authorization: `Bearer ${token}`, 'x-origem': location.origin },
+    body: metodo === 'POST' ? JSON.stringify(corpo || {}) : undefined,
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new ErroApi(j.erro || 'Não foi possível concluir a operação.', String(r.status));
   return j;
 }
+export const apiAdmin = (corpo) => funcaoUsuarios(corpo);
 
 export const ehAdmin = () => sessao.usuario && sessao.usuario.perfil === 'admin';
 

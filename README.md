@@ -11,7 +11,7 @@ Funciona com **três serviços que você já usa**: **Supabase** (banco de dados
 | Peça | O que faz |
 |---|---|
 | **Supabase** | Banco PostgreSQL com todas as regras: cálculo de dias úteis e feriados, permissões por perfil, histórico que ninguém consegue apagar, prevenção de duplicidades. Também cuida do login de cada funcionária e da atualização em tempo real. |
-| **Vercel** | Publica o site (pasta `public/`) e roda três funções seguras (pasta `api/`): configuração, criação do primeiro administrador e Gestão de Usuários. |
+| **Vercel** | Publica o site (pasta `public/`). A Gestão de Usuários e a criação do primeiro administrador rodam numa Edge Function do Supabase (`supabase/functions/usuarios`), que já tem a chave secreta — ela nunca sai do Supabase. |
 | **GitHub** | Guarda o código. A cada alteração, a Vercel atualiza o site sozinha. Também roda o **backup diário** do banco. |
 
 **Segurança em camadas:** a interface esconde o que a recepção não pode usar, mas quem realmente decide é o **banco** — mesmo que alguém tente chamar a API diretamente, a recepção não altera prazos, configurações, usuários nem o histórico (isso foi testado).

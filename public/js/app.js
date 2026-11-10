@@ -1,5 +1,5 @@
 // Inicialização, login, navegação e atualização em tempo real.
-import { iniciar, restaurarSessao, entrar, sair, sessao, rpc, sb, ehAdmin, escutarMudancas, pararDeEscutar, config } from './api.js';
+import { iniciar, restaurarSessao, entrar, sair, sessao, rpc, sb, ehAdmin, escutarMudancas, pararDeEscutar, config, funcaoUsuarios } from './api.js';
 import { h, limpar, toast, modal, ICONES } from './ui.js';
 
 const TELAS = {
@@ -178,7 +178,7 @@ async function telaLogin() {
   document.title = 'Entrar | Patinhas de Assis';
   // Primeiro acesso: nenhum usuário cadastrado ainda
   try {
-    const s = await fetch('/api/setup').then((r) => r.json());
+    const s = await funcaoUsuarios(null, 'GET');
     if (s.precisa_configurar) { location.hash = '#/configuracao-inicial'; return; }
   } catch { /* segue para o login */ }
   const login = h('input', { type: 'text', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', placeholder: 'ex.: nathaly', required: true });
@@ -248,7 +248,7 @@ async function telaDefinirSenha(params) {
 
 async function telaConfiguracaoInicial() {
   elConteudo = null;
-  const s = await fetch('/api/setup').then((r) => r.json()).catch(() => ({}));
+  const s = await funcaoUsuarios(null, 'GET').catch((e) => ({ erro: e.message }));
   if (s.erro) return limpar(app, caixaLogin(h('div', { class: 'aviso vermelho' }, s.erro)));
   if (!s.precisa_configurar) { location.hash = '#/painel'; return; }
   const campos = { setup_token: h('input', { type: 'password' }), nome_completo: h('input', { type: 'text' }), login: h('input', { type: 'text', autocapitalize: 'none' }), senha: h('input', { type: 'password', autocomplete: 'new-password' }), conf: h('input', { type: 'password', autocomplete: 'new-password' }) };
@@ -257,17 +257,15 @@ async function telaConfiguracaoInicial() {
     const e = validarSenha(campos.senha.value, campos.conf.value);
     if (e) { msg.textContent = e; msg.classList.remove('oculto'); return; }
     btn.disabled = true;
-    const r = await fetch('/api/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      setup_token: campos.setup_token.value, nome_completo: campos.nome_completo.value, login: campos.login.value.trim().toLowerCase(), senha: campos.senha.value }) });
-    const j = await r.json().catch(() => ({}));
-    if (!r.ok) { msg.textContent = j.erro || 'Erro ao configurar.'; msg.classList.remove('oculto'); btn.disabled = false; return; }
+    try {
+      await funcaoUsuarios({ acao: 'setup', setup_token: campos.setup_token.value, nome_completo: campos.nome_completo.value, login: campos.login.value.trim().toLowerCase(), senha: campos.senha.value });
+    } catch (err) { msg.textContent = err.message; msg.classList.remove('oculto'); btn.disabled = false; return; }
     toast('Administrador criado! Entre com seu login.');
     location.hash = '#/painel';
   } }, 'Criar administrador');
-  if (!s.setup_habilitado) return limpar(app, caixaLogin(h('h1', null, 'Configuração inicial'), h('div', { class: 'aviso amarelo' }, 'Defina a variável SETUP_TOKEN nas configurações da Vercel e faça um novo deploy para criar o primeiro administrador.')));
   limpar(app, caixaLogin(h('h1', null, 'Configuração inicial'),
     h('p', { class: 'suave', style: { margin: 0 } }, 'Crie o primeiro administrador. Esta tela só aparece enquanto não houver nenhum usuário.'),
-    h('div', { class: 'campo' }, h('label', null, 'Código de configuração (SETUP_TOKEN)'), campos.setup_token),
+    h('div', { class: 'campo' }, h('label', null, 'Código de configuração'), campos.setup_token),
     h('div', { class: 'campo' }, h('label', null, 'Nome completo'), campos.nome_completo),
     h('div', { class: 'campo' }, h('label', null, 'Login'), campos.login, h('span', { class: 'ajuda' }, 'Letras minúsculas, sem espaços. Ex.: bruna')),
     h('div', { class: 'campo' }, h('label', null, 'Senha'), campos.senha),
